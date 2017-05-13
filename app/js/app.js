@@ -5,7 +5,7 @@ var mesh;
 function initApp() {
     var voxels = new Voxels([16,16,16,4]);
     // var material = new THREE.MeshStandardMaterial({ color: 'red' });
-    mesh = VoxelRender.createAsCube(voxels);
+    mesh = VoxelRender.create(voxels);
     // mesh.position.set(0, 0, 3);
     scene.add(mesh);
     applyGuiChanges();
