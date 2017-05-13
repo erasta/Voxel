@@ -79,9 +79,14 @@ function initGraphics() {
     });
 }
 
+var lastPos;
 function animate() {
     // stats.begin();
-    renderer.render(scene, camera);
+    if(!lastPos || lastPos.distanceToManhattan(camera.position) > 0.001) {
+        lastPos = lastPos || new THREE.Vector3();
+        lastPos.copy(camera.position);
+        renderer.render(scene, camera);
+    }
     // stats.end();
     requestAnimationFrame(animate);
 }
