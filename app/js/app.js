@@ -2,19 +2,24 @@ var container, scene, camera, renderer, controls, stats;
 var gui, guiParams;
 var mesh, voxels;
 
-function initApp() {
-    voxels = new VoxelsTiled([16, 16, 16 ,4]);
-    for (var z = 0; z < voxels.size[2]; ++z) {
-        for (var y = 0; y < voxels.size[1]; ++y) {
-            for (var x = 0; x < voxels.size[0]; ++x) {
-                var dist = Math.sqrt(Math.pow(x-8, 2) + Math.pow(y-8, 2) + Math.pow(z-8, 2));
-                voxels.set(x, y, z, 0, dist * 32);
-                voxels.set(x, y, z, 1, 0);
-                voxels.set(x, y, z, 2, 0);
-                voxels.set(x, y, z, 3, (dist < 5) ? 255 : 0);
+function voxelSphere(voxels, center, radius) {
+    var curr = new THREE.Vector3()
+    for (curr.z = 0; curr.z < voxels.size[2]; ++curr.z) {
+        for (curr.y = 0; curr.y < voxels.size[1]; ++curr.y) {
+            for (curr.x = 0; curr.x < voxels.size[0]; ++curr.x) {
+                var dist = curr.distanceTo(center);
+                voxels.set(curr.x, curr.y, curr.z, 0, 255);
+                voxels.set(curr.x, curr.y, curr.z, 1, 0);
+                voxels.set(curr.x, curr.y, curr.z, 2, 0);
+                voxels.set(curr.x, curr.y, curr.z, 3, (dist < radius) ? 255 : 0);
             }
         }
     }
+}
+
+function initApp() {
+    voxels = new VoxelsTiled([64, 64, 64 ,4]);
+    voxelSphere(voxels, new THREE.Vector3(32, 32, 32), 20);
 
     applyGuiChanges();
 }
@@ -38,7 +43,7 @@ function initGui() {
         this.z = 8;
     })();
     gui.add(guiParams, 'show', ['Atlas', 'Plane', 'Voxels']).onChange(applyGuiChanges);
-    gui.add(guiParams, 'z').name('Z').min(0).max(16).step(1).onChange(applyGuiChanges);
+    gui.add(guiParams, 'z').name('Z').min(0).max(64).step(1).onChange(applyGuiChanges);
 }
 
 function initGraphics() {
