@@ -1,27 +1,44 @@
 var container, scene, camera, renderer, controls, stats;
 var gui, guiParams;
-var mesh;
+var mesh, voxels;
 
 function initApp() {
-    var voxels = new Voxels([16,16,16,4]);
-    // var material = new THREE.MeshStandardMaterial({ color: 'red' });
-    mesh = VoxelRender.create(voxels);
-    // mesh.position.set(0, 0, 3);
-    scene.add(mesh);
+    voxels = new VoxelsTiled([16, 16, 16 ,4]);
+    for (var z = 0; z < voxels.size[2]; ++z) {
+        for (var y = 0; y < voxels.size[1]; ++y) {
+            for (var x = 0; x < voxels.size[0]; ++x) {
+                var dist = Math.sqrt(Math.pow(x-8, 2) + Math.pow(y-8, 2) + Math.pow(z-8, 2));
+                voxels.set(x, y, z, 0, dist * 32);
+                voxels.set(x, y, z, 1, 0);
+                voxels.set(x, y, z, 2, 0);
+                voxels.set(x, y, z, 3, (dist < 5) ? 255 : 0);
+            }
+        }
+    }
+
     applyGuiChanges();
 }
 
 function applyGuiChanges() {
-    // console.log(guiParams.ballSize);
-    // mesh.scale.set(guiParams.ballSize, guiParams.ballSize, guiParams.ballSize);
+    scene.remove(mesh);
+    if (guiParams.show == 'Atlas') {
+        mesh = VoxelsAsPlane.createAtlas(voxels);
+    } else if (guiParams.show == 'Plane') {
+        mesh = VoxelsAsPlane.create(voxels, guiParams.z);
+    } else if (guiParams.show == 'Voxels') {
+        mesh = VoxelRender.create(voxels);
+    }
+    scene.add(mesh);
 }
 
 function initGui() {
     gui = new dat.GUI({ autoPlace: true, width: 500 });
     guiParams = new(function() {
-        this.ballSize = 3;
+        this.show = 'Plane';
+        this.z = 8;
     })();
-    gui.add(guiParams, 'ballSize').name('Ball size').min(0.1).max(16).step(0.01).onChange(applyGuiChanges);
+    gui.add(guiParams, 'show', ['Atlas', 'Plane', 'Voxels']).onChange(applyGuiChanges);
+    gui.add(guiParams, 'z').name('Z').min(0).max(16).step(1).onChange(applyGuiChanges);
 }
 
 function initGraphics() {
