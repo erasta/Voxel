@@ -4,9 +4,9 @@ var mesh, voxels;
 
 function voxelSphere(voxels, center, radius) {
     var curr = new THREE.Vector3()
-    for (curr.z = 0; curr.z < voxels.size[2]; ++curr.z) {
-        for (curr.y = 0; curr.y < voxels.size[1]; ++curr.y) {
-            for (curr.x = 0; curr.x < voxels.size[0]; ++curr.x) {
+    for (curr.z = 0; curr.z < voxels.size.z; ++curr.z) {
+        for (curr.y = 0; curr.y < voxels.size.y; ++curr.y) {
+            for (curr.x = 0; curr.x < voxels.size.x; ++curr.x) {
                 var dist = curr.distanceTo(center);
                 voxels.set(curr.x, curr.y, curr.z, 0, 255);
                 voxels.set(curr.x, curr.y, curr.z, 1, 0);
@@ -18,7 +18,7 @@ function voxelSphere(voxels, center, radius) {
 }
 
 function initApp() {
-    voxels = new VoxelsTiled([64, 64, 64 ,4]);
+    voxels = new VoxelsTiled(new THREE.Vector3(64, 64, 64) ,4);
     voxelSphere(voxels, new THREE.Vector3(32, 32, 32), 20);
 
     applyGuiChanges();
@@ -40,7 +40,7 @@ function initGui() {
     gui = new dat.GUI({ autoPlace: true, width: 500 });
     guiParams = new(function() {
         this.show = 'Plane';
-        this.z = 8;
+        this.z = 32;
     })();
     gui.add(guiParams, 'show', ['Atlas', 'Plane', 'Voxels']).onChange(applyGuiChanges);
     gui.add(guiParams, 'z').name('Z').min(0).max(64).step(1).onChange(applyGuiChanges);
