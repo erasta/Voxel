@@ -96,12 +96,13 @@ function initGraphics() {
     });
 }
 
-var lastPos;
+var lastPos, lastParams;
 function animate() {
     // stats.begin();
-    if(!lastPos || lastPos.distanceToManhattan(camera.position) > 0.001) {
+    if(!lastPos || lastPos.distanceToManhattan(camera.position) > 0.001 || !_.isEqual(guiParams, lastParams)) {
         lastPos = lastPos || new THREE.Vector3();
         lastPos.copy(camera.position);
+        lastParams = _.clone(guiParams);
         renderer.render(scene, camera);
     }
     // stats.end();
