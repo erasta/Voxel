@@ -17,7 +17,8 @@ VoxelsAsPlane.create = function(voxels, z) {
     var tex = VoxelRender.makeTexture(arrtex, voxels.size.x, voxels.size.y);
     var material = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
     var mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
-    mesh.scale.copy(voxels.cellSize).multiplyScalar(64);
-    // mesh.position.z = voxels.zcoord(z);
+    mesh.geometry.translate(0.5, 0.5, 0);
+    mesh.position.set(voxels.firstCell.x, voxels.firstCell.y, voxels.zcoord(z));
+    mesh.scale.copy(voxels.cellSize).multiply(voxels.size);
     return mesh;
 };
