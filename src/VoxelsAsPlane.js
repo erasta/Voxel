@@ -2,8 +2,9 @@ var VoxelsAsPlane = VoxelsAsPlane || {};
 
 VoxelsAsPlane.createAtlas = function(voxels) {
     var tex = VoxelRender.makeTexture(voxels.data, voxels.side, voxels.side);
-    var material = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
-    var mesh = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), material);
+    var material = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+    var plane = new THREE.PlaneGeometry(voxels.side / voxels.size.x * 10, voxels.side / voxels.size.y * 10);
+    var mesh = new THREE.Mesh(plane, material);
     return mesh;
 };
 
@@ -15,7 +16,7 @@ VoxelsAsPlane.create = function(voxels, z) {
         while (i < il) arrtex[j++] = voxels.data[i++];
     }
     var tex = VoxelRender.makeTexture(arrtex, voxels.size.x, voxels.size.y);
-    var material = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+    var material = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
     var mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
     mesh.geometry.translate(0.5, 0.5, 0);
     mesh.position.set(voxels.firstCell.x, voxels.firstCell.y, voxels.zcoord(z));
