@@ -9,11 +9,13 @@ VoxelsAsPlane.createAtlas = function(voxels) {
 
 VoxelsAsPlane.create = function(voxels, z) {
     var arrtex = new Uint8Array(voxels.size[3] * voxels.size[0] * voxels.size[1]);
+    var j = 0;
     for (var y = 0; y < voxels.size[1]; ++y) {
-        var from = voxels.index(0, y, z, 0), to = voxels.index(0, y+1, z, 0);
-        for (var i = from, j = y * voxels.size[0]; i < to; ++i, ++j) {
-            // if (voxels.data[i]) debugger
-            arrtex[j] = voxels.data[i];
+        for (var x = 0; x < voxels.size[0]; ++x) {
+            arrtex[j++] = voxels.get(x, y, z, 0);
+            arrtex[j++] = voxels.get(x, y, z, 1);
+            arrtex[j++] = voxels.get(x, y, z, 2);
+            arrtex[j++] = voxels.get(x, y, z, 3);
         }
     }
     var tex = VoxelRender.makeTexture(arrtex, voxels.size[0], voxels.size[1]);
