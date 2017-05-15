@@ -22,7 +22,7 @@ VoxelRender.create = function(voxels) {
         fragmentShader: VoxelRender.fragShader,
         uniforms: {
             cubeTex: {type: 't', value: tex},
-            size: {type: 'v3', value: new THREE.Vector3().fromArray(voxels.size)},
+            size: {type: 'v3', value: voxels.size},
             cellSize: {type: 'v3', value: voxels.cellSize},
             firstCell: {type: 'v3', value: voxels.firstCell},
             lastCell: {type: 'v3', value: voxels.last()},
@@ -111,9 +111,9 @@ VoxelRender.fragShader = `
 
     vec4 sampleAs3DTexture(vec3 texCoord) {
         if (min(min(texCoord.x, texCoord.y), texCoord.z) < 0.01 || max(max(texCoord.x, texCoord.y), texCoord.z) > 0.99) discard;
-        float z = floor(texCoord.z * 63.0);
-        float u = texCoord.x / 8.0 + mod(z, tileNum.x) / tileNum.x;
-        float v = texCoord.y / 8.0 + floor(z / tileNum.x) / tileNum.y;
+        float z = floor(texCoord.z * size.z);
+        float u = texCoord.x / tileNum.x + mod(z, tileNum.x) / tileNum.x;
+        float v = texCoord.y / tileNum.y + floor(z / tileNum.x) / tileNum.y;
         vec2 texCoordSlice = clamp(vec2(u, v), 0.0, 1.0);
         return texture2D(cubeTex, texCoordSlice);
     }
