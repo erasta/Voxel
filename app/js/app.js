@@ -19,19 +19,21 @@ function voxelSphere(voxels, center, radius, color, opacity) {
 }
 
 function initApp() {
-    voxels = new Voxels(new THREE.Vector3(64, 64, 64) ,4);
-    voxelSphere(voxels, new THREE.Vector3(32, 32, 32), 20, [255, 0, 0], 20);
-    voxelSphere(voxels, new THREE.Vector3(32, 32, 32), 10, [0, 255, 0], 255);
-
     applyGuiChanges();
 }
 
 function applyGuiChanges() {
+    if (!voxels || voxels.size.z !== guiParams.dim) {
+        var dim = guiParams.dim, half = guiParams.dim / 2;
+        voxels = new Voxels(new THREE.Vector3(dim, dim, dim) ,4);
+        voxelSphere(voxels, new THREE.Vector3(half, half, half), half * 0.7, [255, 0, 0], 20);
+        voxelSphere(voxels, new THREE.Vector3(half, half, half), half * 0.35, [0, 255, 0], 255);
+    }
     scene.remove(mesh);
     if (guiParams.show == 'Atlas') {
         mesh = VoxelsAsPlane.createAtlas(voxels);
     } else if (guiParams.show == 'Plane') {
-        mesh = VoxelsAsPlane.create(voxels, guiParams.z);
+        mesh = VoxelsAsPlane.create(voxels, Math.floor(guiParams.planePos * (voxels.size.z - 1)));
     } else if (guiParams.show == 'Voxels') {
         mesh = VoxelRender.create(voxels);
     }
@@ -42,10 +44,12 @@ function initGui() {
     gui = new dat.GUI({ autoPlace: true, width: 500 });
     guiParams = new(function() {
         this.show = 'Voxels';
-        this.z = 32;
+        this.dim = 40;
+        this.planePos = 0.5;
     })();
     gui.add(guiParams, 'show', ['Atlas', 'Plane', 'Voxels']).onChange(applyGuiChanges);
-    gui.add(guiParams, 'z').name('Z').min(0).max(64).step(1).onChange(applyGuiChanges);
+    gui.add(guiParams, 'dim').name('Dimensions').min(8).max(128).step(8).onChange(applyGuiChanges);
+    gui.add(guiParams, 'planePos').name('Z Plane pos').min(0).max(1).step(0.01).onChange(applyGuiChanges);
 }
 
 function initGraphics() {

@@ -28,6 +28,7 @@ VoxelRender.create = function(voxels) {
             lastCell: {type: 'v3', value: voxels.last()},
             center: {type: 'v3', value: voxels.firstCell.clone().add(voxels.last()).divideScalar(2)},
             tileNum: {type: 'v2', value: voxels.tileNum},
+            side: {type: 'v2', value: voxels.side},
         },
         // wireframe: true
     });
@@ -108,12 +109,14 @@ VoxelRender.fragShader = `
     uniform vec3 lastCell;
     uniform vec3 center;
     uniform vec2 tileNum;
+    uniform float side;
 
     vec4 sampleAs3DTexture(vec3 texCoord) {
         if (min(min(texCoord.x, texCoord.y), texCoord.z) < 0.01 || max(max(texCoord.x, texCoord.y), texCoord.z) > 0.99) discard;
-        float z = floor(texCoord.z * size.z);
-        float u = (texCoord.x + mod(z, tileNum.x)) / tileNum.x;
-        float v = (texCoord.y + floor(z / tileNum.x)) / tileNum.y;
+        vec3 size1 = size - vec3(1.0);
+        vec3 coord = floor(texCoord * size1);
+        float u = (coord.x + mod(coord.z, tileNum.x) * size.x) / side;
+        float v = (coord.y + floor(coord.z / tileNum.x) * size.y) / side;
         vec2 texCoordSlice = clamp(vec2(u, v), 0.0, 1.0);
         return texture2D(cubeTex, texCoordSlice);
     }
