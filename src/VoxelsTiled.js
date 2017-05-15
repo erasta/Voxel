@@ -9,7 +9,7 @@ var VoxelsTiled = function(size, channels, cellSize, firstCell, data) {
 }
 
 VoxelsTiled.prototype.last = function() {
-    return new THREE.Vector3().fromArray(this.size).multiply(this.cellSize).add(this.firstCell);
+    return this.size.clone().multiply(this.cellSize).add(this.firstCell);
 }
 
 VoxelsTiled.prototype.box = function() {

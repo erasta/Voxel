@@ -39,7 +39,7 @@ function applyGuiChanges() {
 function initGui() {
     gui = new dat.GUI({ autoPlace: true, width: 500 });
     guiParams = new(function() {
-        this.show = 'Plane';
+        this.show = 'Voxels';
         this.z = 32;
     })();
     gui.add(guiParams, 'show', ['Atlas', 'Plane', 'Voxels']).onChange(applyGuiChanges);

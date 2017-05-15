@@ -13,23 +13,25 @@ VoxelRender.create = function(voxels) {
         circle.translate(sphere.center.x, sphere.center.y, z);
         geom.merge(circle);
     }
+
+    var tex = VoxelRender.makeTexture(voxels.data, voxels.side, voxels.side);
+
     var material = new THREE.ShaderMaterial({
         transparent: true,
         vertexShader: VoxelRender.vertShader,
         fragmentShader: VoxelRender.fragShader,
         uniforms: {
-            cubeTex: {type: "t", value: tex},
-            size: {type: "v3", value: new THREE.Vector3().fromArray(voxels.size)},
-            cellSize: {type: "v3", value: voxels.cellSize},
-            firstCell: {type: "v3", value: voxels.firstCell},
-            lastCell: {type: "v3", value: voxels.last()},
-            center: {type: "v3", value: voxels.firstCell.clone().add(voxels.last()).divideScalar(2)},
+            cubeTex: {type: 't', value: tex},
+            size: {type: 'v3', value: new THREE.Vector3().fromArray(voxels.size)},
+            cellSize: {type: 'v3', value: voxels.cellSize},
+            firstCell: {type: 'v3', value: voxels.firstCell},
+            lastCell: {type: 'v3', value: voxels.last()},
+            center: {type: 'v3', value: voxels.firstCell.clone().add(voxels.last()).divideScalar(2)},
+            tileNum: {type: 'v2', value: voxels.tileNum},
         },
         // wireframe: true
     });
     // var material = new THREE.MeshNormalMaterial({ transparent: true, opacity: 0.3 });
-
-    var tex = VoxelRender.makeTexture(voxels.data, voxels.size[0], voxels.size[1]);
 
     return new THREE.Mesh(geom, material);
 };
@@ -37,9 +39,9 @@ VoxelRender.create = function(voxels) {
 VoxelRender.makeTexture = function(arr, width, height) {
     var texture = new THREE.DataTexture(arr, width, height, THREE.RGBAFormat);
     texture.needsUpdate = true;
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping; // ClampToEdgeWrapping
-    texture.minFilter = texture.magFilter = THREE.LinearFilter;
-    texture.flipY = true;
+    texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping; // RepeatWrapping;
+    texture.minFilter = texture.magFilter = THREE.NearestFilter; // THREE.LinearFilter;
+    texture.flipY = false;
     return texture;
 };
 
@@ -84,13 +86,16 @@ VoxelRender.vertShader = `
     }
 
     void main() {
-		//Set the world space coordinates of the back faces vertices as output.
+		// //Set the world space coordinates of the back faces vertices as output.
         vec3 cameraVector = normalize(center - cameraPosition);
         vec3 down = vec3(0.0, 0.0, -1.0);
         vec4 quat = rotationBetweenVectorsToQuaternion(down, cameraVector);
 		vec3 rotpos = rotateVectorByQuaternion(position - center, quat) + center;
-        worldSpaceCoords = (rotpos - firstCell) / cellSize / size; //move it from [-0.5;0.5] to [0,1]
+        // worldSpaceCoords = (rotpos - firstCell) / cellSize / size + vec3(0.5); //move it from [-0.5;0.5] to [0,1]
+        worldSpaceCoords = (rotpos - firstCell) / cellSize / vec3(64.0); //move it from [-0.5;0.5] to [0,1]
+        // worldSpaceCoords = position + vec3(0.5);
         gl_Position = projectionMatrix * modelViewMatrix * vec4(rotpos, 1.0);
+        // gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
     `;
 
@@ -102,10 +107,19 @@ VoxelRender.fragShader = `
     uniform vec3 firstCell;
     uniform vec3 lastCell;
     uniform vec3 center;
+    uniform vec2 tileNum;
+
+    vec4 sampleAs3DTexture(vec3 texCoord) {
+        float z = floor(texCoord.z * 63.0);
+        float u = texCoord.x / 8.0 + mod(z, tileNum.x) / tileNum.x;
+        float v = texCoord.y / 8.0 + floor(z / tileNum.x) / tileNum.y;
+        vec2 texCoordSlice = clamp(vec2(u, v), 0.0, 1.0);
+        return texture2D(cubeTex, texCoordSlice);
+    }
     void main(void) {
-        // gl_FragColor = sampleAs3DTexture(worldSpaceCoords);
-        // if (gl_FragColor.w < 0.01) discard;
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 0.3);
-        //gl_FragColor = gl_FragCoord;
+        gl_FragColor = sampleAs3DTexture(worldSpaceCoords);
+        if (gl_FragColor.w < 0.01) discard;
+        // gl_FragColor = vec4(1.0, 0.0, 0.0, 0.3);
+        // gl_FragColor = gl_FragCoord;
     }
     `;
