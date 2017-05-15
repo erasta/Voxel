@@ -8,12 +8,12 @@ var Voxels = function(size, channels, cellSize, firstCell, data) {
     this.data = data || new Uint8Array(this.channels * this.side * this.side);
 }
 
-Voxels.prototype.last = function() {
+Voxels.prototype.lastCell = function() {
     return this.size.clone().multiply(this.cellSize).add(this.firstCell);
 }
 
 Voxels.prototype.box = function() {
-    return new THREE.Box3(this.firstCell.clone(), this.last());
+    return new THREE.Box3(this.firstCell.clone(), this.lastCell());
 }
 
 Voxels.prototype.index = function(x, y, z, c) {
