@@ -110,7 +110,7 @@ VoxelRender.fragShader = `
     uniform float side;
 
     vec4 sampleAs3DTexture(vec3 texCoord) {
-        if (min(min(texCoord.x, texCoord.y), texCoord.z) < 0.01 || max(max(texCoord.x, texCoord.y), texCoord.z) > 0.99) discard;
+        if (min(min(texCoord.x, texCoord.y), texCoord.z) < 0.001 || max(max(texCoord.x, texCoord.y), texCoord.z) > 0.999) discard;
         vec3 size1 = size - vec3(1.0);
         vec3 coord = floor(texCoord * size1);
         float u = (coord.x + mod(coord.z, tileNum.x) * size.x) / side;

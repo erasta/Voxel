@@ -25,7 +25,8 @@ function initApp() {
 function applyGuiChanges() {
     if (!voxels || voxels.size.z !== guiParams.dim) {
         var dim = guiParams.dim, half = guiParams.dim / 2;
-        voxels = new Voxels(new THREE.Vector3(dim, dim, dim) ,4);
+        var cell = 40 / dim;
+        voxels = new Voxels(new THREE.Vector3(dim, dim, dim), 4, new THREE.Vector3(cell, cell, cell), new THREE.Vector3(-20, -20, 0));
         voxelSphere(voxels, new THREE.Vector3(half, half, half), half * 0.7, [255, 0, 0], 20);
         voxelSphere(voxels, new THREE.Vector3(half, half, half), half * 0.35, [0, 255, 0], 255);
     }
