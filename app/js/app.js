@@ -19,7 +19,7 @@ function voxelSphere(voxels, center, radius, color, opacity) {
 }
 
 function initApp() {
-    voxels = new VoxelsTiled(new THREE.Vector3(64, 64, 64) ,4);
+    voxels = new Voxels(new THREE.Vector3(64, 64, 64) ,4);
     voxelSphere(voxels, new THREE.Vector3(32, 32, 32), 20, [255, 0, 0], 20);
     voxelSphere(voxels, new THREE.Vector3(32, 32, 32), 10, [0, 255, 0], 255);
 
