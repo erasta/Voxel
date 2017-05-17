@@ -39,3 +39,7 @@ class Voxels {
     ypos(ycoord) { return (ycoord - this.firstCell.y) / this.cellSize.y; };
     zpos(zcoord) { return (zcoord - this.firstCell.z) / this.cellSize.z; };
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports.Voxels = Voxels;
+}

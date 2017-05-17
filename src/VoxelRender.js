@@ -1,52 +1,53 @@
-var VoxelRender = VoxelRender || {};
+class VoxelRender {
+    static create(voxels) {
+        // Create layers of circles slicing a sphere containing the voxels
+        var geom = new THREE.Geometry();
+        var sphere = voxels.box().getBoundingSphere();
+        var circleCenter = sphere.center.clone();
+        var z1 = sphere.center.z - sphere.radius + voxels.cellSize.z;
+        var z2 = sphere.center.z + sphere.radius - voxels.cellSize.z;
+        for (var z = z1; z <= z2; z += voxels.cellSize.z) {
+            var circleRadius = Math.sqrt(sphere.radius * sphere.radius - Math.pow(sphere.center.z - z, 2));
+            var circle = new THREE.CircleGeometry(circleRadius, 20);
+            circle.translate(sphere.center.x, sphere.center.y, z);
+            geom.merge(circle);
+        }
 
-VoxelRender.create = function(voxels) {
-    // Create layers of circles slicing a sphere containing the voxels
-    var geom = new THREE.Geometry();
-    var sphere = voxels.box().getBoundingSphere();
-    var circleCenter = sphere.center.clone();
-    var z1 = sphere.center.z - sphere.radius + voxels.cellSize.z;
-    var z2 = sphere.center.z + sphere.radius - voxels.cellSize.z;
-    for (var z = z1; z <= z2; z += voxels.cellSize.z) {
-        var circleRadius = Math.sqrt(sphere.radius * sphere.radius - Math.pow(sphere.center.z - z, 2));
-        var circle = new THREE.CircleGeometry(circleRadius, 20);
-        circle.translate(sphere.center.x, sphere.center.y, z);
-        geom.merge(circle);
+        var tex = VoxelRender.makeTexture(voxels.data, voxels.side, voxels.side);
+
+        VoxelRender.obtainShaders();
+        var material = new THREE.ShaderMaterial({
+            transparent: true,
+            vertexShader: VoxelRender.vertShader,
+            fragmentShader: VoxelRender.fragShader,
+            uniforms: {
+                cubeTex: { type: 't', value: tex },
+                size: { type: 'v3', value: voxels.size },
+                cellSize: { type: 'v3', value: voxels.cellSize },
+                firstCell: { type: 'v3', value: voxels.firstCell },
+                lastCell: { type: 'v3', value: voxels.lastCell() },
+                center: { type: 'v3', value: voxels.firstCell.clone().add(voxels.lastCell()).divideScalar(2) },
+                tileNum: { type: 'v2', value: voxels.tileNum },
+                side: { type: 'v2', value: voxels.side },
+            },
+            // wireframe: true
+        });
+        // var material = new THREE.MeshNormalMaterial({ transparent: true, opacity: 0.3 });
+
+        return new THREE.Mesh(geom, material);
     }
 
-    var tex = VoxelRender.makeTexture(voxels.data, voxels.side, voxels.side);
+    static makeTexture(arr, width, height) {
+        var texture = new THREE.DataTexture(arr, width, height, THREE.RGBAFormat);
+        texture.needsUpdate = true;
+        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping; // RepeatWrapping;
+        texture.minFilter = texture.magFilter = THREE.NearestFilter; // THREE.LinearFilter;
+        texture.flipY = false;
+        return texture;
+    }
 
-    var material = new THREE.ShaderMaterial({
-        transparent: true,
-        vertexShader: VoxelRender.vertShader,
-        fragmentShader: VoxelRender.fragShader,
-        uniforms: {
-            cubeTex: {type: 't', value: tex},
-            size: {type: 'v3', value: voxels.size},
-            cellSize: {type: 'v3', value: voxels.cellSize},
-            firstCell: {type: 'v3', value: voxels.firstCell},
-            lastCell: {type: 'v3', value: voxels.lastCell()},
-            center: {type: 'v3', value: voxels.firstCell.clone().add(voxels.lastCell()).divideScalar(2)},
-            tileNum: {type: 'v2', value: voxels.tileNum},
-            side: {type: 'v2', value: voxels.side},
-        },
-        // wireframe: true
-    });
-    // var material = new THREE.MeshNormalMaterial({ transparent: true, opacity: 0.3 });
-
-    return new THREE.Mesh(geom, material);
-};
-
-VoxelRender.makeTexture = function(arr, width, height) {
-    var texture = new THREE.DataTexture(arr, width, height, THREE.RGBAFormat);
-    texture.needsUpdate = true;
-    texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping; // RepeatWrapping;
-    texture.minFilter = texture.magFilter = THREE.NearestFilter; // THREE.LinearFilter;
-    texture.flipY = false;
-    return texture;
-};
-
-VoxelRender.vertShader = `
+    static obtainShaders() {
+        VoxelRender.vertShader = `
 	varying vec3 worldSpaceCoords;
     uniform vec3 size;
     uniform vec3 cellSize;
@@ -98,7 +99,7 @@ VoxelRender.vertShader = `
     }
     `;
 
-VoxelRender.fragShader = `
+        VoxelRender.fragShader = `
     varying vec3 worldSpaceCoords;
     uniform sampler2D cubeTex;
     uniform vec3 size;
@@ -125,3 +126,9 @@ VoxelRender.fragShader = `
         // gl_FragColor = gl_FragCoord;
     }
     `;
+    }
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports.VoxelRender = VoxelRender;
+}
